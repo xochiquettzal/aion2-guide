@@ -10,12 +10,19 @@ import {
 import { classes } from "@/data/classes";
 import { defaultProfile, getPool, type Profile } from "@/lib/engine";
 import type { ClassId, CardType } from "@/data/types";
+import {
+  assessmentProfile,
+  sanitizeAssessment,
+  type Assessment,
+} from "@/lib/assessment";
 export type SavedState = {
   classId: ClassId;
   profile: Profile;
   checked: string[];
   arcana: Record<string, { set: "Vigor" | "Magic"; lines: string[] }>;
   genus: Record<string, { level: number; locks: number[] }>;
+  assessments: Partial<Record<ClassId, Assessment>>;
+  onboardingDismissed: boolean;
 };
 const initial: SavedState = {
   classId: "gladiator",
@@ -23,13 +30,26 @@ const initial: SavedState = {
   checked: [],
   arcana: {},
   genus: {},
+  assessments: {},
+  onboardingDismissed: false,
 };
 const Store = createContext<{
   state: SavedState;
   change: (fn: (s: SavedState) => SavedState) => void;
   ready: boolean;
   storageError: string;
-}>({ state: initial, change: () => {}, ready: false, storageError: "" });
+  assessmentOpen: boolean;
+  openAssessment: () => void;
+  closeAssessment: () => void;
+}>({
+  state: initial,
+  change: () => {},
+  ready: false,
+  storageError: "",
+  assessmentOpen: false,
+  openAssessment: () => {},
+  closeAssessment: () => {},
+});
 export const STORAGE_KEY = "aion2-fieldguide-v1";
 export function sanitizeSaved(raw: unknown): SavedState {
   if (!raw || typeof raw !== "object") return initial;
@@ -65,6 +85,12 @@ export function sanitizeSaved(raw: unknown): SavedState {
       }
     }
   const genus: SavedState["genus"] = {};
+  const assessments: SavedState["assessments"] = {};
+  if (r.assessments && typeof r.assessments === "object")
+    for (const c of classes) {
+      const value = sanitizeAssessment(r.assessments[c.id]);
+      if (value) assessments[c.id] = value;
+    }
   if (r.genus && typeof r.genus === "object")
     for (const [k, v] of Object.entries(r.genus))
       if (v && Array.isArray(v.locks))
@@ -97,12 +123,15 @@ export function sanitizeSaved(raw: unknown): SavedState {
       : [],
     arcana,
     genus,
+    assessments,
+    onboardingDismissed: r.onboardingDismissed === true,
   };
 }
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(initial);
   const [ready, setReady] = useState(false);
   const [storageError, setError] = useState("");
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -128,12 +157,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (fn: (s: SavedState) => SavedState) =>
       setState((s) => {
         const next = fn(s);
-        return next === s ? s : sanitizeSaved(next);
+        if (next === s) return s;
+        // Never carry another class's profile into the selected character.
+        if (next.classId !== s.classId) {
+          const a = next.assessments[next.classId];
+          next.profile = a
+            ? assessmentProfile(a, defaultProfile, next.classId)
+            : { ...defaultProfile };
+        }
+        return sanitizeSaved(next);
       }),
     [],
   );
   return (
-    <Store.Provider value={{ state, change, ready, storageError }}>
+    <Store.Provider
+      value={{
+        state,
+        change,
+        ready,
+        storageError,
+        assessmentOpen,
+        openAssessment: () => setAssessmentOpen(true),
+        closeAssessment: () => setAssessmentOpen(false),
+      }}
+    >
       {children}
     </Store.Provider>
   );

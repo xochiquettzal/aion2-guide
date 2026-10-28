@@ -1,5 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("aion2-fieldguide-v1"))
+      localStorage.setItem(
+        "aion2-fieldguide-v1",
+        JSON.stringify({ onboardingDismissed: true }),
+      );
+  });
+});
+
 test("statik alt dizinde tüm sayfalar Türkçe açılır; masaüstü ve mobil taşmaz", async ({
   page,
   baseURL,

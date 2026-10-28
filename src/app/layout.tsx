@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { StoreProvider } from "@/components/store";
 import { Shell } from "@/components/shell";
+import { AssessmentGate } from "@/components/assessment-wizard";
 import "./globals.css";
+import "./coach.css";
 export const metadata: Metadata = {
   title: {
     default: "AION 2 · Daeva Rehberi",
@@ -19,7 +21,9 @@ export default function RootLayout({
     <html lang="tr">
       <body>
         <StoreProvider>
-          <Shell>{children}</Shell>
+          <AssessmentGate>
+            <Shell>{children}</Shell>
+          </AssessmentGate>
         </StoreProvider>
       </body>
     </html>

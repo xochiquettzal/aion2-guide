@@ -1,8 +1,18 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("aion2-fieldguide-v1"))
+      localStorage.setItem(
+        "aion2-fieldguide-v1",
+        JSON.stringify({ onboardingDismissed: true }),
+      );
+  });
+});
+
 test("class selection updates guides and survives reload", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Assassin Daggers" }).click();
+  await page.getByLabel("Sınıfın").selectOption("assassin");
   await expect(page.getByRole("combobox", { name: "Sınıfın" })).toHaveValue(
     "assassin",
   );
@@ -10,7 +20,9 @@ test("class selection updates guides and survives reload", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Sınıfın" })).toHaveValue(
     "assassin",
   );
-  await page.getByRole("link", { name: "İncele: Assassin" }).click();
+  await page
+    .getByRole("link", { name: "Assassin rehberi", exact: false })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Assassin rehberi" }),
   ).toBeVisible();

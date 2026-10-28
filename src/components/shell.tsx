@@ -41,7 +41,8 @@ export const nav = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  const { state, change, ready, storageError } = useGuideStore();
+  const { state, change, ready, storageError, openAssessment } =
+    useGuideStore();
   const [mobile, setMobile] = useState(false);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState(false);
@@ -113,10 +114,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Compass size={34} strokeWidth={1} />
           <span>
             AION <b>2</b>
-            <small> DAEVA REHBERİ </small>
+            <small> GELİŞİM MERKEZİ </small>
           </span>
         </Link>
-        <div className="side-label"> YOL ARKADAŞIN </div>
+        <div className="side-label"> KARAKTERİNE ODAKLAN </div>
         <nav aria-label="Ana gezinme">
           {nav.map((n) => (
             <Link
@@ -169,7 +170,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <ChevronRight size={13} />
             <span>
               {nav.find((n) => n.href !== "/" && path.startsWith(n.href))
-                ?.label || "Genel bakış"}
+                ?.label || "Gelişim planım"}
             </span>
           </div>
           <div className="search-wrap" ref={wrap}>
@@ -244,6 +245,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             ))}
           </select>
           <span className="context-mode"> PvE · Global kuralları </span>
+          <button className="context-assessment" onClick={openAssessment}>
+            Karakter analizi
+          </button>
           <span className="saved">
             <CheckCircle2 size={13} />
             {ready ? messages.saved : messages.loading}

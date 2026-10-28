@@ -2,258 +2,328 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
+  CheckCircle2,
+  CircleHelp,
+  Clock3,
+  Crosshair,
   Gem,
   Layers,
   Orbit,
-  Route,
-  ArrowUpRight,
-  Compass,
-  BookOpen,
-  CheckCircle2,
+  Pencil,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
-import { classes, classById } from "@/data/classes";
-import { getMilestone, nextActions } from "@/lib/engine";
+import { classById } from "@/data/classes";
+import { analyzeCharacter } from "@/lib/assessment";
 import { useGuideStore } from "./store";
-import { Badge, ClassIcon, Evidence, SectionTitle } from "./common";
+import { ClassIcon, Evidence } from "./common";
+
+const statusLabels = {
+  gap: "Geliştir",
+  check: "Kontrol et",
+  ready: "Şimdilik yeterli",
+  later: "Sonraki aşama",
+};
+const goals = {
+  damage: "Hasarını artır",
+  gear: "Yeni içeriğe eriş",
+  survival: "İçeriği rahat bitir",
+};
 export function Overview() {
-  const { state, change } = useGuideStore();
+  const { state, openAssessment } = useGuideStore();
   const c = classById[state.classId];
-  const m = getMilestone(state.profile.gs);
+  const a = state.assessments[state.classId];
+  const result = a ? analyzeCharacter(a, state.classId) : null;
+  const first = result?.next[0];
   return (
-    <>
-      <div className="overview-hero">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <span /> GLOBAL SÜRÜM · PVE REHBERİ{" "}
-          </div>
+    <div className="coach-dashboard">
+      <div className="coach-page-heading">
+        <div>
+          <span className="coach-kicker">KİŞİSEL GELİŞİM MERKEZİN</span>
           <h1>
-            {" "}
-            Her geliştirmede <br />
-            <em> daha net bir yol. </em>
+            Bir sonraki adımın <span>net olsun.</span>
           </h1>
           <p>
-            {" "}
-            Yapın, sıradaki beceri eşiğin, Atreia’daki yolculuğun. <br /> Her
-            kararın dayanağını gösteren pratik öneriler.{" "}
+            {a
+              ? "Mevcut durumuna göre önceliklerin. Her yükseltmenin bir nedeni var."
+              : "Karakterini değerlendir, kaynaklarını doğru gelişime ayır."}
           </p>
-          <Link href={`/classes/${c.id}/`} className="button primary">
-            {" "}
-            İncele: {c.name} <ArrowRight size={16} />
-          </Link>
-          <Link className="hero-secondary" href="/progression/">
-            {" "}
-            İlerlemeni planla <ArrowUpRight size={15} />
-          </Link>
         </div>
-        <div className="hero-seal" aria-hidden="true">
-          <div className="seal-ring outer" />
-          <div className="seal-ring inner" />
-          <Compass size={158} strokeWidth={0.55} />
-          <span> BİLGİ GÜÇTÜR </span>
-          <i>I · II · III · IV · V</i>
-        </div>
-        <div className="hero-edition">
-          {" "}
-          REHBER NOTLARI <b>01</b>
-          <span>ATREIA / GLOBAL</span>
-        </div>
+        <button className="button coach-edit" onClick={openAssessment}>
+          <Pencil size={16} />
+          {a ? "Durumumu güncelle" : "Karakterimi değerlendir"}
+        </button>
       </div>
-      <div className="update-strip">
-        <Badge tone="gold"> YAMA TAKİBİ </Badge>
-        <p>
-          {" "}
-          Hard Expedition eşiği: <strong>2600</strong> · Ariel Daevanion artık
-          PvE gelişiminin bir parçası.{" "}
-        </p>
-        <Link href="/sources/">
-          {" "}
-          21 Ekim güncellemesi <ArrowUpRight size={14} />
+      {!a || !result ? (
+        <section className="coach-welcome">
+          <div className="coach-orbit" aria-hidden="true">
+            <Crosshair size={88} strokeWidth={1} />
+            <span>
+              <Zap size={20} />
+            </span>
+          </div>
+          <span className="coach-kicker">ÖNCE SENİ TANIYALIM</span>
+          <h2>{c.name} için yolunu çizelim.</h2>
+          <p>
+            Sınıfını seçmek başlangıç. GS, ekipman ve beceri durumunu gir;
+            geliştirilmesi gereken alanları ve ilk adımını görelim.
+          </p>
+          <button className="button primary" onClick={openAssessment}>
+            Gelişim analizini başlat <ArrowRight size={18} />
+          </button>
+          <small>
+            Yaklaşık 2 dakika · Hesap gerekmez · Bilmediklerini boş bırak
+          </small>
+        </section>
+      ) : (
+        <>
+          <section className="coach-profile-strip">
+            <div className="coach-avatar">
+              <ClassIcon id={c.id} size={27} />
+            </div>
+            <div>
+              <strong>{c.name}</strong>
+              <span>{goals[a.goal]}</span>
+            </div>
+            <div className="profile-stat">
+              <small>EŞYA SEVİYESİ</small>
+              <strong>
+                {a.gs.toLocaleString("tr-TR")} <span>GS</span>
+              </strong>
+            </div>
+            <div className="profile-stat">
+              <small>SONRAKİ EŞİK</small>
+              <strong>
+                {result.milestone.max?.toLocaleString("tr-TR") ?? "İnce ayar"}
+              </strong>
+            </div>
+            <div className="profile-timestamp">
+              <span className="status-dot" />
+              {a.updatedAt
+                ? `Son kayıt: ${new Date(a.updatedAt).toLocaleDateString("tr-TR")}`
+                : "Kayıtlı değerlendirme"}
+            </div>
+          </section>
+          <div className="coach-primary-grid">
+            <section className="coach-focus">
+              <div className="coach-focus-top">
+                <span className="coach-kicker">
+                  <Sparkles size={14} />{" "}
+                  {result.gaps.length
+                    ? "İLK ODAĞIN"
+                    : result.checks.length
+                      ? "ÖNCE NETLEŞTİRELİM"
+                      : "TEMEL KONTROLLER TAMAM"}
+                </span>
+                <span className="coach-priority">
+                  {first ? "01 / ÖNCELİK" : "İYİ GİDİYORSUN"}
+                </span>
+              </div>
+              <h2>{first?.title || "Şimdi ince ayar zamanı."}</h2>
+              <p>
+                {first?.why ||
+                  "Bildirdiğin temel alanlarda açık görünmüyor. Kart satırlarını, karşılaşmaya uygun beceri seçimlerini ve güncel içerik koşullarını gözden geçir."}
+              </p>
+              <div className="coach-focus-bottom">
+                <Link
+                  className="button primary"
+                  href={first?.href || `/classes/${c.id}/`}
+                >
+                  {first?.action || "Sınıf yapını gözden geçir"}
+                  <ArrowRight size={18} />
+                </Link>
+                <span>
+                  {first?.status === "check"
+                    ? "Bilgi eksik · Henüz sorun sayılmadı"
+                    : "Bildirdiğin duruma göre"}
+                </span>
+              </div>
+              <Evidence ids={first?.sources || [`class-${c.id}`]} />
+            </section>
+            <aside className="coach-health">
+              <span className="coach-kicker">GELİŞİM ÖZETİN</span>
+              <div className="health-total">
+                <strong>{result.gaps.length}</strong>
+                <div>
+                  <b>gelişim alanı</b>
+                  <span>8 temel kontrol içinde</span>
+                </div>
+              </div>
+              <div className="health-bars" aria-hidden="true">
+                {result.findings.map((f) => (
+                  <i key={f.id} className={f.status} />
+                ))}
+              </div>
+              <div className="health-legend">
+                <span>
+                  <i className="gap" />
+                  {result.gaps.length} geliştir
+                </span>
+                <span>
+                  <i className="check" />
+                  {result.checks.length} kontrol et
+                </span>
+                <span>
+                  <i className="ready" />
+                  {result.ready.length} yeterli
+                </span>
+                {result.findings.some((f) => f.status === "later") && (
+                  <span>
+                    <i className="later" />
+                    Sonraya bırak
+                  </span>
+                )}
+              </div>
+              <p>Bu bir güç puanı değil. Bildirdiğin durumun kontrol özeti.</p>
+            </aside>
+          </div>
+          <div className="coach-section-title">
+            <div>
+              <span className="coach-kicker">AZ AMA DOĞRU İŞ</span>
+              <h2>Bugünkü planın</h2>
+            </div>
+            <span className="coach-time">
+              <Clock3 size={15} />
+              {a.minutes === 60 ? "60+" : a.minutes} dk ayırıyorsun
+            </span>
+          </div>
+          <div className="coach-session-list">
+            {result.next.length ? (
+              result.next.slice(0, result.sessionCount).map((f, i) => (
+                <article key={f.id} className="coach-task">
+                  <span className="coach-task-number">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <span className={`coach-status ${f.status}`}>
+                      {statusLabels[f.status]} · {f.area}
+                    </span>
+                    <h3>{f.title}</h3>
+                    <p>{f.why}</p>
+                  </div>
+                  <Link href={f.href} aria-label={f.action}>
+                    <ArrowUpRight size={21} />
+                  </Link>
+                </article>
+              ))
+            ) : (
+              <article className="coach-maintenance">
+                <ShieldCheck size={25} />
+                <div>
+                  <h3>Yeni bir eksik bildirmedin.</h3>
+                  <p>
+                    Sonraki içerik koşullarını incele ve karakterin değiştikçe
+                    değerlendirmeyi güncelle.
+                  </p>
+                </div>
+                <Link href="/progression/" className="text-link">
+                  Yol haritası <ArrowRight size={16} />
+                </Link>
+              </article>
+            )}
+          </div>
+          <div className="coach-resource-note">
+            <ShieldCheck size={19} />
+            <p>
+              <strong>
+                {a.budget === "save"
+                  ? "Kaynaklarını koruyarak ilerle."
+                  : "Kalıcı gelişime yatırım yap."}
+              </strong>{" "}
+              {a.tier === "Heroic" &&
+                "Heroic ekipmanında küçük değişimler için aktarım bütçeni tüketme. "}
+              {a.budget === "save"
+                ? "Önce mevcut eşya ve kartlarını karşılaştır. Erken kusursuz satır arayışını ertele; harcamadan önce oyun içindeki maliyeti kontrol et."
+                : "Yakında değişecek ekipmana yüklenmeden beceri eşiği ve uzun süre kullanacağın parçaları birlikte değerlendir."}{" "}
+              Süre tercihin planın kapsamını belirler; bitirme süresi tahmini
+              değildir.
+            </p>
+          </div>
+          <div className="coach-section-title">
+            <div>
+              <span className="coach-kicker">BÜTÜN RESMİ GÖR</span>
+              <h2>Hangi alanın ne durumda?</h2>
+            </div>
+            <button className="text-link" onClick={openAssessment}>
+              Bilgileri düzenle <Pencil size={14} />
+            </button>
+          </div>
+          <div className="coach-area-grid">
+            {result.findings.map((f) => (
+              <article className={`coach-area ${f.status}`} key={f.id}>
+                <div>
+                  <span className={`coach-status ${f.status}`}>
+                    {f.status === "ready" ? (
+                      <CheckCircle2 size={14} />
+                    ) : f.status === "check" ? (
+                      <CircleHelp size={14} />
+                    ) : (
+                      <TrendingUp size={14} />
+                    )}
+                    {statusLabels[f.status]}
+                  </span>
+                  <small>{f.area}</small>
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.why}</p>
+                <Link href={f.href}>
+                  {f.action}
+                  <ArrowUpRight size={15} />
+                </Link>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+      <div className="coach-section-title">
+        <div>
+          <span className="coach-kicker">İHTİYACIN OLDUĞUNDA</span>
+          <h2>Gelişim araçların</h2>
+        </div>
+        <Link className="text-link" href="/guides/">
+          Tüm rehberler <ArrowRight size={15} />
         </Link>
       </div>
-      <SectionTitle
-        eyebrow="01 / KARAKTERİN"
-        title="Sınıfını seç"
-        description="Tek seçimle rehberler ve planlayıcılar sınıfına uyarlanır."
-        action={<span className="muted tiny"> 8 GLOBAL SINIF </span>}
-      />
-      <div className="class-grid">
-        {classes.map((cl) => (
-          <button
-            className={`class-tile ${cl.id === state.classId ? "selected" : ""}`}
-            style={{ "--class-color": cl.color } as React.CSSProperties}
-            key={cl.id}
-            onClick={() => change((s) => ({ ...s, classId: cl.id }))}
-            aria-pressed={cl.id === state.classId}
-          >
-            <ClassIcon id={cl.id} size={29} />
-            <strong>{cl.name}</strong>
-            <small>{cl.weapon}</small>
-            {cl.id === state.classId && (
-              <CheckCircle2 className="class-check" size={12} />
-            )}
-          </button>
-        ))}
-      </div>
-      <div className="dashboard-columns">
-        <section className="panel current-build">
-          <div className="panel-top">
-            <span className="eyebrow"> YAPINA GENEL BAKIŞ </span>
-            <Badge tone="teal">PVE</Badge>
-          </div>
-          <div className="build-title">
-            <div className="class-emblem" style={{ color: c.color }}>
-              <ClassIcon id={c.id} size={35} />
-            </div>
-            <div>
-              <h2>{c.name}</h2>
-              <p>{c.role}</p>
-            </div>
-          </div>
-          <p>{c.summary}</p>
-          <div className="breakpoint">
-            <span> SIRADAKİ BECERİ HEDEFİ </span>
-            <strong>
-              {c.skills[0].name}
-              <b> Sv. {c.skills[0].target}</b>
-            </strong>
-            <small>{c.skills[0].why}</small>
-          </div>
-          <Link href={`/classes/${c.id}/`} className="text-link">
-            {" "}
-            Sınıf rehberini aç <ArrowRight size={16} />
-          </Link>
-          <Evidence ids={[`class-${c.id}`]} />
-        </section>
-        <section className="panel next-up">
-          <div className="panel-top">
-            <span className="eyebrow"> SONRAKİ ADIMINI BELİRLE </span>
-            <Route size={17} />
-          </div>
-          <h2> Neyi geliştirmeliyim? </h2>
-          <p> Kaydettiğin ilerleme profiline göre. </p>
-          <div className="mini-progress">
-            <span>
-              {" "}
-              EŞYA SEVİYESİ{" "}
-              <strong>{state.profile.gs.toLocaleString("tr-TR")}</strong>
-            </span>
-            <ArrowRight size={18} />
-            <span>
-              {" "}
-              SONRAKİ EŞİK{" "}
-              <strong>
-                {m.max?.toLocaleString("tr-TR") || "Baskın hazırlığı"}
-              </strong>
-            </span>
-          </div>
-          <div className="action-preview">
-            {nextActions(state.profile, c.id)
-              .slice(0, 2)
-              .map((a, i) => (
-                <Link key={a.title} href={a.href}>
-                  <span className="number">0{i + 1}</span>
-                  <div>
-                    <strong>{a.title}</strong>
-                    <small>{a.impact}</small>
-                  </div>
-                  <ChevronArrow />
-                </Link>
-              ))}
-          </div>
-          <Link href="/progression/" className="text-link">
-            {" "}
-            Profili düzenle, yol haritasını gör <ArrowRight size={16} />
-          </Link>
-        </section>
-        <section className="panel field-notes">
-          <div className="panel-top">
-            <span className="eyebrow"> REHBERDEN NOTLAR </span>
-            <BookOpen size={17} />
-          </div>
-          <h2> Kaynaklarını bilinçli kullan. </h2>
-          <Link href="/guides/#transfer">
-            <span>01</span>
-            <div>
-              <strong> Aktarımdan önce </strong>
-              <small> Hangi satır ve yuvaların kaybolduğunu öğren. </small>
-            </div>
-            <ArrowUpRight size={15} />
-          </Link>
-          <Link href="/genus/">
-            <span>02</span>
-            <div>
-              <strong> Önce seviye, sonra ince ayar. </strong>
-              <small>
-                {" "}
-                Genus kilitleri erken denemeleri pahalılaştırabilir.{" "}
-              </small>
-            </div>
-            <ArrowUpRight size={15} />
-          </Link>
-          <Link href="/sources/">
-            <span>03</span>
-            <div>
-              <strong> Global’in kuralları ayrı </strong>
-              <small> Yalnızca KR’de bulunan sistemler yapına eklenmez. </small>
-            </div>
-            <ArrowUpRight size={15} />
-          </Link>
-          <div className="source-credit">
-            {" "}
-            Başlıca referans: <br />
-            <strong>Kanon’s Aion 2 Bible</strong>
-            <span> ve güncel Global kaynakları </span>
-          </div>
-        </section>
-      </div>
-      <SectionTitle
-        eyebrow="02 / PLANLAMA ARAÇLARI"
-        title="Yapını bilinçli kur"
-        action={
-          <Link className="text-link" href="/guides/">
-            {" "}
-            Tüm rehberler <ArrowRight size={14} />
-          </Link>
-        }
-      />
-      <div className="tool-grid">
+      <div className="coach-tools">
         {[
           {
-            name: "Soul Binding danışmanı",
-            desc: "Doğru satırları koru. Ne zaman yenileyeceğini bil.",
+            name: "Soul Binding",
+            detail: "Hangi satırı korumalısın?",
             href: "/soul-binding/",
             icon: Gem,
-            tag: "EKİPMAN",
           },
           {
-            name: "Arcana kurulum planlayıcı",
-            desc: "Beş kart. Sınıfa özel beceri havuzları.",
+            name: "Arcana planlayıcı",
+            detail: "Beceri eşiklerini kartlarla tamamla.",
             href: "/arcana/",
             icon: Layers,
-            tag: "BECERİLER VE SETLER",
           },
           {
-            name: "Genus Insight planlayıcı",
-            desc: "Beş tablo, dokuz yuva, net öncelikler.",
+            name: "Genus Insight",
+            detail: "Yuvalarını ve kaynaklarını planla.",
             href: "/genus/",
             icon: Orbit,
-            tag: "EK GÜÇ KAYNAKLARI",
+          },
+          {
+            name: `${c.name} rehberi`,
+            detail: "Beceri öncelikleri ve sınıf yapın.",
+            href: `/classes/${c.id}/`,
+            icon: Zap,
           },
         ].map((t) => (
-          <Link href={t.href} className="tool-card" key={t.name}>
-            <div className="tool-ornament">
-              <t.icon size={30} strokeWidth={1.2} />
+          <Link href={t.href} key={t.name}>
+            <t.icon size={23} />
+            <div>
+              <strong>{t.name}</strong>
+              <small>{t.detail}</small>
             </div>
-            <span className="eyebrow">{t.tag}</span>
-            <h3>{t.name}</h3>
-            <p>{t.desc}</p>
-            <ArrowUpRight className="tool-arrow" size={19} />
+            <ArrowUpRight size={16} />
           </Link>
         ))}
       </div>
-    </>
+    </div>
   );
-}
-function ChevronArrow() {
-  return <ArrowUpRight size={15} />;
 }

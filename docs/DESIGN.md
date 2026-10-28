@@ -1,5 +1,7 @@
 # Design system
 
+> Updated 28 October 2026: the personal growth dashboard and onboarding replace the initial overview. The active theme uses a dark blue background, mint accent, sans-serif headings and rounded panels. Current behavior and screen references: [Growth coach](GELISIM-KOCU.md). The notes below describe the original visual direction.
+
 The interface uses deep navy `#0c1016`, charcoal panels `#121820`, borders `#26303b`, restrained gold `#d4b582` and aether teal `#7cbdb5`. Georgia display headings contrast with a system sans-serif reading/UI face. No remote font or asset service is needed.
 
 The desktop shell has a 228px sidebar, sticky search header and persistent class context. At narrow widths the sidebar becomes a dismissible drawer. Dense data tables and the five-card deck scroll within their own regions. Panels, field labels, badges, evidence disclosures, native controls and visible focus rings are shared throughout.

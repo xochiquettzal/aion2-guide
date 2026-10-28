@@ -10,6 +10,7 @@ import {
   Target,
 } from "lucide-react";
 import { milestones } from "@/data/progression";
+import { analyzeCharacter } from "@/lib/assessment";
 import { getMilestone, nextActions, type Profile } from "@/lib/engine";
 import { useGuideStore } from "./store";
 import {
@@ -21,11 +22,17 @@ import {
   SectionTitle,
 } from "./common";
 export function Progression() {
-  const { state, change } = useGuideStore();
+  const { state, change, openAssessment } = useGuideStore();
   const p = state.profile;
   const [current, setCurrent] = useState<number | null>(null);
   const m = milestones.find((x) => x.min === current) || getMilestone(p.gs);
-  const actions = nextActions(p, state.classId);
+  const assessment = state.assessments[state.classId];
+  const actions = assessment
+    ? analyzeCharacter(assessment, state.classId).next.map((f) => ({
+        ...f,
+        impact: f.status === "check" ? "Önce kontrol et" : "Gelişim alanı",
+      }))
+    : nextActions(p, state.classId);
   const update = (key: keyof Profile, value: Profile[keyof Profile]) =>
     change((s) => ({ ...s, profile: { ...s.profile, [key]: value } }));
   const checked = (i: number) =>
@@ -70,76 +77,140 @@ export function Progression() {
             title="Karakter profilin"
             description="Yerel kaydedilir. Düzenledikçe öneriler güncellenir."
           />
-          <div className="two-col compact">
-            {[
-              { key: "gs", label: "Mevcut GS / eşya seviyesi", max: 20000 },
-              {
-                key: "cp",
-                label: "Combat Power (isteğe bağlı)",
-                max: 10000000,
-              },
-              { key: "enhance", label: "Silah geliştirme seviyesi", max: 25 },
-              { key: "arcana", label: "Dolu Arcana yuvası", max: 5 },
-              { key: "genus", label: "En düşük Genus seviyesi", max: 10 },
-            ].map((f) => (
-              <label className="field-label" key={f.key}>
-                {f.label}
-                <input
-                  type="number"
-                  min={f.key === "genus" ? 1 : 0}
-                  max={f.max}
-                  step="1"
-                  value={p[f.key as keyof Profile] as number}
-                  onChange={(e) =>
-                    update(
-                      f.key as keyof Profile,
-                      Math.floor(Number(e.target.value) || 0),
-                    )
-                  }
-                />
-              </label>
-            ))}
-            <label className="field-label">
-              {" "}
-              Mevcut ekipman kalitesi{" "}
-              <select
-                value={p.tier}
-                onChange={(e) => update("tier", e.target.value)}
-              >
-                {["Quest", "Unique", "Heroic"].map((s) => (
-                  <option key={s} value={s}>
-                    {s === "Quest" ? "Görev" : s}
-                  </option>
+          {assessment ? (
+            <>
+              <dl className="assessment-profile-details">
+                {[
+                  [
+                    "Eşya seviyesi",
+                    `${assessment.gs.toLocaleString("tr-TR")} GS`,
+                  ],
+                  [
+                    "Silah geliştirmesi",
+                    assessment.enhance === null
+                      ? "Belirtilmedi"
+                      : `+${assessment.enhance}`,
+                  ],
+                  [
+                    "Dolu Arcana yuvası",
+                    assessment.arcana === null
+                      ? "Belirtilmedi"
+                      : `${assessment.arcana} / 5`,
+                  ],
+                  [
+                    "En düşük Genus",
+                    assessment.genus === null
+                      ? "Belirtilmedi"
+                      : `${assessment.genus}. seviye`,
+                  ],
+                  [
+                    "Temel beceri",
+                    assessment.skillLevel === null
+                      ? "Belirtilmedi"
+                      : `${assessment.skillLevel}. seviye`,
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
                 ))}
-              </select>
-            </label>
-          </div>
-          <CheckItem
-            checked={p.story}
-            onChange={() => update("story", !p.story)}
-          >
-            {" "}
-            45. seviye hikâye tamamlandı{" "}
-          </CheckItem>
-          <CheckItem
-            checked={p.coreSkill}
-            onChange={() => update("coreSkill", !p.coreSkill)}
-          >
-            {" "}
-            Temel aktif beceri eşiğine ulaşıldı{" "}
-          </CheckItem>
-          <CheckItem
-            checked={p.accuracy}
-            onChange={() => update("accuracy", !p.accuracy)}
-          >
-            {" "}
-            Hedef boss için isabet kontrol edildi{" "}
-          </CheckItem>
-          <p className="tiny muted">
-            {" "}
-            Combat Power yalnızca bilgi için kaydedilir. Evrensel ve doğrulanmış
-            bir CP–başarı formülü olmadığından hazır olma kararı üretmez.{" "}
-          </p>
+              </dl>
+              <button className="button primary" onClick={openAssessment}>
+                Karakter durumumu güncelle
+              </button>
+              <p className="tiny muted">
+                Kişisel planınla aynı değerlendirme kullanılır. Yeni bilgileri
+                eklediğinde öneriler birlikte güncellenir.
+              </p>
+            </>
+          ) : (
+            <>
+              <Notice>
+                Bu alanı bir ilerleme senaryosu olarak kullanabilirsin. Kişisel
+                analiz için{" "}
+                <button className="text-link" onClick={openAssessment}>
+                  karakterini değerlendir
+                </button>
+                .
+              </Notice>
+              <div className="two-col compact">
+                {[
+                  { key: "gs", label: "Mevcut GS / eşya seviyesi", max: 20000 },
+                  {
+                    key: "cp",
+                    label: "Combat Power (isteğe bağlı)",
+                    max: 10000000,
+                  },
+                  {
+                    key: "enhance",
+                    label: "Silah geliştirme seviyesi",
+                    max: 25,
+                  },
+                  { key: "arcana", label: "Dolu Arcana yuvası", max: 5 },
+                  { key: "genus", label: "En düşük Genus seviyesi", max: 10 },
+                ].map((f) => (
+                  <label className="field-label" key={f.key}>
+                    {f.label}
+                    <input
+                      type="number"
+                      min={f.key === "genus" ? 1 : 0}
+                      max={f.max}
+                      step="1"
+                      value={p[f.key as keyof Profile] as number}
+                      onChange={(e) =>
+                        update(
+                          f.key as keyof Profile,
+                          Math.floor(Number(e.target.value) || 0),
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+                <label className="field-label">
+                  {" "}
+                  Mevcut ekipman kalitesi{" "}
+                  <select
+                    value={p.tier}
+                    onChange={(e) => update("tier", e.target.value)}
+                  >
+                    {["Quest", "Unique", "Heroic"].map((s) => (
+                      <option key={s} value={s}>
+                        {s === "Quest" ? "Görev" : s}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <CheckItem
+                checked={p.story}
+                onChange={() => update("story", !p.story)}
+              >
+                {" "}
+                45. seviye hikâye tamamlandı{" "}
+              </CheckItem>
+              <CheckItem
+                checked={p.coreSkill}
+                onChange={() => update("coreSkill", !p.coreSkill)}
+              >
+                {" "}
+                Temel aktif beceri eşiğine ulaşıldı{" "}
+              </CheckItem>
+              <CheckItem
+                checked={p.accuracy}
+                onChange={() => update("accuracy", !p.accuracy)}
+              >
+                {" "}
+                Hedef boss için isabet kontrol edildi{" "}
+              </CheckItem>
+              <p className="tiny muted">
+                {" "}
+                Combat Power yalnızca bilgi için kaydedilir. Evrensel ve
+                doğrulanmış bir CP–başarı formülü olmadığından hazır olma kararı
+                üretmez.{" "}
+              </p>
+            </>
+          )}
         </section>
         <section className="panel action-queue">
           <SectionTitle
@@ -161,6 +232,12 @@ export function Progression() {
               </div>
             </div>
           ))}
+          {actions.length === 0 && (
+            <p className="muted">
+              Temel kontrollerinde yeni bir açık yok. Aşağıdaki yol haritasından
+              içerik hazırlığını gözden geçir.
+            </p>
+          )}
         </section>
       </div>
       <SectionTitle

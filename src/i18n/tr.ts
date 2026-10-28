@@ -3,7 +3,7 @@ export const tr = {
   language: "tr",
   numberLocale: "tr-TR",
   navigation: {
-    overview: "Genel bakış",
+    overview: "Gelişim planım",
     classes: "Sınıf rehberleri",
     binding: "Soul Binding",
     arcana: "Arcana planlayıcı",

@@ -2,6 +2,10 @@
 
 Varsayılan dili **Türkçe** olan bağımsız Global PvE rehberi. Next.js App Router, React, TypeScript ve Tailwind CSS ile geliştirildi. Araştırma tarihi: **27 Ekim 2026**. Hesap, sunucu veritabanı veya ücretli API gerekmez.
 
+**Yeni başlangıç deneyimi:** İlk girişte üç adımlı karakter değerlendirmesi açılır. Sınıf, GS, ekipman boşlukları, ana beceri seviyesi, Arcana, Genus, Soul Binding, Stigma ve isabet durumundan kişisel gelişim planı oluşturulur. Hedef, kaynak yaklaşımı ve süre tercihi plana yön verir. Ana sayfa ilk önceliği, günlük odağı ve sekiz alanın durumunu gösterir. Koyu panel tasarımı, mint vurgu ve okunaklı kartlarla yenilendi.
+
+Bilmediğin bilgileri boş bırakabilirsin: bunlar eksik veya tamamlanmış sayılmaz. Değerlendirme sınıfa göre kaydedilir; sonraki ziyarette planın açılır. **Durumumu güncelle** ile bilgileri yenileyebilirsin. İstersen ilk değerlendirmeyi atlayıp rehberleri keşfedebilirsin. Ayrıntılar: [Gelişim koçu teslim notu](docs/GELISIM-KOCU.md).
+
 **Yayınlamak için:** [GitHub Pages kurulum rehberini aç](docs/GITHUB-PAGES.md). Depo oluşturma, ilk yükleme, Pages ayarı ve sonraki güncellemeler adım adım anlatılıyor. Bu proje henüz yayınlanmadı.
 
 ## Bilgisayarında çalıştır
