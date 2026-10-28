@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.npm-cache/
+*.tsbuildinfo
+research/
+*.docx
+.playwright-mcp/
+test-results/
+playwright-report/

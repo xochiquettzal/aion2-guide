@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+research
+reports
+.npm-cache
+.playwright-mcp
+playwright-report
+test-results
+package-lock.json
